@@ -29,7 +29,7 @@ namespace sharpberry.obd
                 ElmCommands.SetAdaptiveTiming2,
                 ElmCommands.DisableSpaces
             };
-        internal const int GlobalReadHoldTime = 25;
+        internal const int GlobalReadHoldTime = 250;
 
         public ObdInterface(string portName, int baudRate)
             : this(new SerialPort
@@ -64,7 +64,7 @@ namespace sharpberry.obd
         internal readonly CommandQueue writeQueue = new CommandQueue();
         private Timer readTimer = null;
 
-        #region Control 
+        #region Control
         [Writer]
         public async Task Connect()
         {
@@ -164,6 +164,8 @@ namespace sharpberry.obd
         #region Command Queueing
         protected async Task<CommandCompletedEventArgs> ExecuteCommandInternal(Command command, QueueItemType type)
         {
+            if (command == null)
+                throw new ArgumentNullException("command");
             var item = new QueuedCommand(command, type);
             this.writeQueue.Enqueue(item);
             Logger.DebugFormat("Enqueued command: {0}", item.Command);
@@ -196,7 +198,7 @@ namespace sharpberry.obd
             if (item.Sent)
                 return;
 
-            Logger.Debug("--> " + item.Command.ToString());
+            Logger.Debug("--> " + item.Command);
             this.port.Send(item.Command.GetCommandString() + "\r\n");
             item.MarkSent();
             RestartReadTimer();
@@ -235,10 +237,10 @@ namespace sharpberry.obd
             if (this.State == ObdInterfaceState.Disposed)
                 return;
             this.readTimer.Stop();
-            this.TryFinishRead(true);
+            this.ReceiveAndParse(true);
         }
 
-        protected void ReceiveAndParse()
+        protected void ReceiveAndParse(bool fromTimer = false)
         {
             lock (this)
             {
@@ -270,7 +272,7 @@ namespace sharpberry.obd
                         continue;
                     }
 
-                    if (lines[i].Equals("SEARCHING...", StringComparison.InvariantCultureIgnoreCase))
+                    if (!fromTimer && lines[i].Equals("SEARCHING...", StringComparison.InvariantCultureIgnoreCase))
                     {
                         RestartReadTimer(5000);
                         lines[i] = null;
@@ -281,6 +283,9 @@ namespace sharpberry.obd
                 // reassemble data
                 currentCommand.SetIntermediateResponse(string.Join("\n", lines.Where(l => l != null)));
             }
+
+            if (fromTimer)
+                this.TryFinishRead(true);
         }
 
         protected void TryFinishRead(bool fromTimer = false)
@@ -354,6 +359,11 @@ namespace sharpberry.obd
                 {
                     // mode, pid, number of commands described
                     new[] { 0x01, 0x00, 19 },
+                    new[] { 0x01, 0x20, 19 },
+                    new[] { 0x01, 0x40, 19 },
+                    new[] { 0x01, 0x60, 19 },
+                    new[] { 0x05, 0x100, 19 },
+                    new[] { 0x09, 0x00, 19 }
                 };
             foreach (var task in todo)
             {
@@ -363,15 +373,21 @@ namespace sharpberry.obd
                 var numberOfCommands = task[2];
 
                 // execute the query command and interpret the response
-                var result = await this.ExecuteCommandInternal(ObdCommands.GetCommand(mode, pid), QueueItemType.FeatureDetection);
+                var command = ObdCommands.GetCommand(mode, pid);
+                if (command == null)
+                {
+                    Logger.WarnFormat("Missing feature detection command for mode {0:X}, pid {1:X}", mode, pid);
+                    continue;
+                }
+                var result = await this.ExecuteCommandInternal(command, QueueItemType.FeatureDetection);
                 if (result.Status != ResponseStatus.Valid)
                 {
-                    Logger.WarnFormat("Feature detection failed while identifying supported commands in mode 1, range {0}-{1}", pid + 1, pid + 20);
-                    break;
+                    Logger.WarnFormat("Feature detection failed while identifying supported commands in mode {0}, range {1}-{2}", mode, pid + 1, pid + 20);
+                    continue;
                 }
                 var intValue = Convert.ToInt32(result.Response, 16);
                 var bitVector = new BitVector32(intValue);
-                
+
                 for (var i = 1; i <= numberOfCommands; i++)
                 {
                     var cmd = ObdCommands.GetCommand(mode, pid + i);
@@ -380,11 +396,6 @@ namespace sharpberry.obd
                     else if (!this.Features.SupportedCommands.Contains(cmd) && bitVector[i - 1])
                         this.Features.SupportedCommands.Add(cmd);
                 }
-            }
-            foreach (var pid in new[] {0x00, 0x20, 0x40, 0x60})
-            {
-                
-                bitVector[]
             }
         }
 

@@ -16,14 +16,26 @@ namespace sharpberry.obd.Commands
         static List<StandardCommand> all = new List<StandardCommand>();
         public static List<StandardCommand> All { get { return all; } }
 
+        private static bool defaultsLoaded = false;
+
         public static void LoadDefaults()
         {
-            All.AddRange(GetDefaults());
+            lock (typeof (ObdCommands))
+            {
+                if (defaultsLoaded)
+                    return;
+
+                All.AddRange(GetDefaults());
+                defaultsLoaded = true;
+            }
         }
 
         public static StandardCommand GetCommand(int mode, int pid)
         {
-            return All.FirstOrDefault(cmd => cmd.Mode == mode && cmd.Pid == pid);
+            lock (typeof (ObdCommands))
+            {
+                return All.FirstOrDefault(cmd => cmd.Mode == mode && cmd.Pid == pid);
+            }
         }
 
         public static IEnumerable<StandardCommand> GetDefaults()

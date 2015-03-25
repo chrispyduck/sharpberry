@@ -14,6 +14,9 @@ namespace sharpberry.obd.Responses
 
         public override ResponseStatus CheckInput(string input)
         {
+            if (input == "NO DATA")
+                return ResponseStatus.NoData;
+
             var bytes = input.GetBytesFromHexString();
 
             if (bytes == null || bytes.Length > this.NumberOfBytes)

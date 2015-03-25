@@ -11,7 +11,7 @@ namespace sharpberry.obd
     public class SerialPort : ISerialPort
     {
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        
         public SerialPort()
         {
             this.serialPort = new System.IO.Ports.SerialPort();
@@ -62,14 +62,14 @@ namespace sharpberry.obd
 
         public void Send(string input)
         {
-            Logger.Debug("--> " + input.Replace("\r", "\\r").Replace("\n", "\\n"));
+            //Logger.Debug("--> " + input.Replace("\r", "\\r").Replace("\n", "\\n"));
             this.serialPort.Write(input);
         }
 
         public string Receive()
         {
             var str = this.serialPort.ReadExisting();
-            Logger.Debug("<-- " + str.Replace("\r", "\\r").Replace("\n", "\\n"));
+            //Logger.Debug("<-- " + str.Replace("\r", "\\r").Replace("\n", "\\n"));
             return str;
         }
 

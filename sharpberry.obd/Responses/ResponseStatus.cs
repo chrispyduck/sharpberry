@@ -20,6 +20,11 @@ namespace sharpberry.obd.Responses
         /// <summary>
         /// The status of the command's response is unknown, possible due to a port error, object disposal or intentional disconnection
         /// </summary>
-        Indeterminate
+        Indeterminate,
+
+        /// <summary>
+        /// OBD reported that there is no data for the requested command
+        /// </summary>
+        NoData
     }
 }

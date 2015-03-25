@@ -66,6 +66,7 @@
     <Compile Include="ExpectedResponseTests.cs" />
     <Compile Include="ObdCommandTests.cs" />
     <Compile Include="ObdInterfaceTests.cs" />
+    <Compile Include="ObdSimTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Setup.cs" />
     <Compile Include="ExtensionTests.cs" />

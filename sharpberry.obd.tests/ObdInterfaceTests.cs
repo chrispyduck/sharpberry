@@ -16,6 +16,8 @@ namespace sharpberry.obd.tests
     [TestFixture]
     public class ObdInterfaceTests
     {
+        private static readonly Random rnd = new Random();
+
         static string GetCommandResponse(string command)
         {
             command = command.Trim('\r', '\n');
@@ -23,6 +25,23 @@ namespace sharpberry.obd.tests
                 return "ELM mockup";
             if (command.StartsWith("AT"))
                 return "OK";
+
+            if (command.Length == 4)
+            {
+                // assume it's a 4 digit hex command and parse into mode and pid
+                var mode = Convert.ToInt32(command.Substring(0, 2), 16);
+                var pid = Convert.ToInt32(command.Substring(2, 2), 16);
+                var cmd = ObdCommands.GetCommand(mode, pid);
+                if (cmd != null)
+                {
+                    // figure out how many bytes are expected, and return that many random bytes
+                    var expectedByteCount = ((ByteCountExpectedResponse) cmd.ExpectedResponse).NumberOfBytes;
+                    var bytes = new byte[expectedByteCount];
+                    rnd.NextBytes(bytes);
+                    return bytes.ToHexString();
+                }
+            }
+
             return "ERROR";
         }
 
@@ -78,6 +97,29 @@ namespace sharpberry.obd.tests
 
             obd.Dispose();
             Assert.AreEqual(ObdInterfaceState.Disposed, obd.State);
+        }
+
+        [Test]
+        public void TestGetSupportedCommands()
+        {
+            ObdCommands.LoadDefaults();
+            Assert.Greater(ObdCommands.All.Count, 0, "Commands have been loaded");
+
+            var serial = new Mock<ISerialPort>();
+            serial.Setup(s => s.PortName).Returns("mock");
+            serial.Setup(s => s.Send(It.IsAny<string>())).Callback<string>(s => this.PrepareMockCommandResponse(serial, s));
+            serial.Setup(s => s.Receive()).Returns(this.ReturnResponse);
+
+            var obd = new ObdInterface(serial.Object);
+            obd.Connect().Wait();
+            Assert.AreEqual(ObdInterfaceState.Connected, obd.State);
+
+            obd.QuerySupportedCommands().Wait();
+            Assert.Greater(obd.Features.SupportedCommands.Count, 0, "There should be at least one supported command");
+
+            obd.Dispose();
+            Assert.AreEqual(ObdInterfaceState.Disposed, obd.State);
+
         }
 
         private void SetupDelayedWrite(Mock<ISerialPort> serial, int minDelay = 750, int maxDelay = 1250)

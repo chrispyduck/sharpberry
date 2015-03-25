@@ -22,6 +22,9 @@ namespace sharpberry.obd.Responses
             if (string.IsNullOrWhiteSpace(input))
                 return ResponseStatus.Incomplete;
 
+            if (input == "NO DATA")
+                return ResponseStatus.NoData;
+
             if (input.Length < this.ExpectedValue.Length)
                 return this.ExpectedValue.StartsWith(input, StringComparison.InvariantCultureIgnoreCase)
                            ? ResponseStatus.Incomplete
