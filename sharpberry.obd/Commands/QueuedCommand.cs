@@ -11,14 +11,15 @@ namespace sharpberry.obd.Commands
             this.command = command;
             this.Type = type;
             this.Sent = false;
-            this.ResponseValidity = ResponseStatus.Incomplete;
+            this.Response = new ParsedResponse();
         }
 
         public Command Command { get { return this.command; } }
         public QueueItemType Type { get; private set; }
         public bool Sent { get; private set; }
-        public string Response { get; private set; }
-        public ResponseStatus ResponseValidity { get; private set; }
+        public string RawResponse { get; private set; }
+        public ParsedResponse Response { get; private set; }
+        public ResponseStatus ResponseValidity { get { return Response.Status; } }
         public WaitHandle WaitHandle { get { return this.waitHandle; } }
 
         private readonly Command command;
@@ -29,14 +30,10 @@ namespace sharpberry.obd.Commands
             this.Sent = true;
         }
 
-        public void CheckResponseValidity()
+        public void SetIntermediateResponse(string response, ObdFeatures features)
         {
-            this.ResponseValidity = this.Command.ExpectedResponse.CheckInput(this.Response);
-        }
-
-        public void SetIntermediateResponse(string response)
-        {
-            this.Response = response;
+            this.RawResponse = response;
+            this.Response = ResponseParser.Parse(this.RawResponse, this.command, features);
         }
 
         public void SetFinalResponse()
@@ -51,8 +48,12 @@ namespace sharpberry.obd.Commands
                 return;
 
             // invalidate the response and mark the command complete
-            this.ResponseValidity = ResponseStatus.Indeterminate;
-            this.Response = null;
+            this.Response = new ParsedResponse
+                {
+                    Status = ResponseStatus.Invalid,
+                    IsError = true
+                };
+            this.RawResponse = null;
             this.waitHandle.Set();
         }
 

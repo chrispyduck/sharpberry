@@ -5,7 +5,7 @@ namespace sharpberry.obd.Commands
 {
     public class CommandCompletedEventArgs : EventArgs
     {
-        public CommandCompletedEventArgs(Command command, string response, ResponseStatus status)
+        public CommandCompletedEventArgs(Command command, ParsedResponse response, ResponseStatus status)
         {
             this.Command = command;
             this.Response = response;
@@ -13,7 +13,7 @@ namespace sharpberry.obd.Commands
         }
 
         public Command Command { get; private set; }
-        public string Response { get; private set; }
+        public ParsedResponse Response { get; private set; }
         public ResponseStatus Status { get; private set; }
     }
 }

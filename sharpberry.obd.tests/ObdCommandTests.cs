@@ -15,7 +15,7 @@ namespace sharpberry.obd.tests
         [Test]
         public void StandardCommand()
         {
-            var sc = new StandardCommand("test", 1, 15, 4);
+            var sc = new ObdCommand("test", 1, 15, 4);
             Assert.AreEqual("test", sc.Name, "Name");
             Assert.AreEqual(1, sc.Mode, "mode");
             Assert.AreEqual(15, sc.Pid, "pid");

@@ -31,7 +31,7 @@
 1,1D,1,"Oxygen sensors present",,,,""
 1,1E,1,"Auxiliary input status",,,,""
 1,1F,2,"Run time since engine start",0,65535,seconds,(A*256)+B
-1,20,4,"PIDs supported 21-40",,,,"Bit encoded [A7..D0] == [PID 0x21..PID 0x40]"
+1,20,4,"PIDs supported 21-40",,,,
 1,21,2,"Distance traveled with MIL on",0,65535,km,(A*256)+B
 1,22,2,"Fuel Rail Pressure (relative to manifold vacuum)",0,5177.265,kPa,"((A*256)+B) * 0.079"
 1,23,2,"Fuel Rail Pressure (diesel, or gasoline direct inject)",0,655350,"kPa (gauge)","((A*256)+B) * 10"

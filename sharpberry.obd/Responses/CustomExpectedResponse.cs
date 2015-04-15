@@ -10,7 +10,7 @@ namespace sharpberry.obd.Responses
             this.Function = function;
         }
         
-        public Func<string, ResponseStatus> Function { get; private set; } 
+        public Func<string, ResponseStatus> Function { get; private set; }
 
         public override ResponseStatus CheckInput(string input)
         {

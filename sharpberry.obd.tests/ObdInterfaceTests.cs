@@ -36,8 +36,10 @@ namespace sharpberry.obd.tests
                 {
                     // figure out how many bytes are expected, and return that many random bytes
                     var expectedByteCount = ((ByteCountExpectedResponse) cmd.ExpectedResponse).NumberOfBytes;
-                    var bytes = new byte[expectedByteCount];
+                    var bytes = new byte[expectedByteCount + 2];
                     rnd.NextBytes(bytes);
+                    bytes[0] = (byte)(mode + 0x40);
+                    bytes[1] = (byte) pid;
                     return bytes.ToHexString();
                 }
             }

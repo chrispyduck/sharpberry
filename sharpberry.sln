@@ -14,6 +14,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C7F2FD
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sharpberry.data", "sharpberry.data\sharpberry.data.csproj", "{EF9DDC9C-D980-4847-85B0-F8124331979E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sharpberry.controller.tests", "sharpberry.controller.tests\sharpberry.controller.tests.csproj", "{4E3EAAED-1CDD-4570-A058-941ABD5177D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +36,14 @@ Global
 		{0270ED82-C999-4C20-B951-8FAC27710362}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0270ED82-C999-4C20-B951-8FAC27710362}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0270ED82-C999-4C20-B951-8FAC27710362}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF9DDC9C-D980-4847-85B0-F8124331979E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF9DDC9C-D980-4847-85B0-F8124331979E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF9DDC9C-D980-4847-85B0-F8124331979E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF9DDC9C-D980-4847-85B0-F8124331979E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E3EAAED-1CDD-4570-A058-941ABD5177D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E3EAAED-1CDD-4570-A058-941ABD5177D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E3EAAED-1CDD-4570-A058-941ABD5177D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E3EAAED-1CDD-4570-A058-941ABD5177D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

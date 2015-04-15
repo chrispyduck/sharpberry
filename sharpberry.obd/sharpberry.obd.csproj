@@ -50,6 +50,9 @@
     <Reference Include="PostSharp.Patterns.Threading">
       <HintPath>..\packages\PostSharp.Patterns.Threading.4.0.43\lib\net45\PostSharp.Patterns.Threading.dll</HintPath>
     </Reference>
+    <Reference Include="SimpleExpressionEvaluator">
+      <HintPath>..\packages\Math-Expression-Evaluator.1.0.0.0\lib\net40\SimpleExpressionEvaluator.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -67,7 +70,7 @@
     <Compile Include="Commands\ObdCommands.cs" />
     <Compile Include="Commands\QueuedCommand.cs" />
     <Compile Include="Commands\QueueItemType.cs" />
-    <Compile Include="Commands\StandardCommand.cs" />
+    <Compile Include="Commands\ObdCommand.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="ObdException.cs" />
     <Compile Include="ObdFeatures.cs" />
@@ -78,6 +81,8 @@
     <Compile Include="Responses\ByteCountExpectedResponse.cs" />
     <Compile Include="Responses\CustomExpectedResponse.cs" />
     <Compile Include="Responses\ExpectedResponse.cs" />
+    <Compile Include="Responses\ParsedResponse.cs" />
+    <Compile Include="Responses\ResponseParser.cs" />
     <Compile Include="Responses\ResponseStatus.cs" />
     <Compile Include="Responses\StringExpectedResponse.cs" />
     <Compile Include="SerialPort.cs" />

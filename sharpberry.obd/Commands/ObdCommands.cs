@@ -13,8 +13,8 @@ namespace sharpberry.obd.Commands
 {
     public static class ObdCommands
     {
-        static List<StandardCommand> all = new List<StandardCommand>();
-        public static List<StandardCommand> All { get { return all; } }
+        static List<ObdCommand> all = new List<ObdCommand>();
+        public static List<ObdCommand> All { get { return all; } }
 
         private static bool defaultsLoaded = false;
 
@@ -30,7 +30,16 @@ namespace sharpberry.obd.Commands
             }
         }
 
-        public static StandardCommand GetCommand(int mode, int pid)
+        public static ObdCommand CoolantTemp { get { return GetCommand(0x01, 0x05); } }
+        public static ObdCommand VehicleSpeed { get { return GetCommand(0x01, 0x0D); } }
+        public static ObdCommand EngineRpm { get { return GetCommand(0x01, 0x0C); } }
+        public static ObdCommand IntakeAirTemp { get { return GetCommand(0x01, 0x0F); } }
+        public static ObdCommand ThrottlePosition { get { return GetCommand(0x01, 0x11); } }
+        public static ObdCommand RelativeAcceleratorPedalPosition { get { return GetCommand(0x01, 0x5A); } }
+        public static ObdCommand EngineOilTemp { get { return GetCommand(0x01, 0x5C); } }
+        public static ObdCommand EngineFuelRate { get { return GetCommand(0x01, 0x5E); } }
+        
+        public static ObdCommand GetCommand(int mode, int pid)
         {
             lock (typeof (ObdCommands))
             {
@@ -38,14 +47,14 @@ namespace sharpberry.obd.Commands
             }
         }
 
-        public static IEnumerable<StandardCommand> GetDefaults()
+        public static IEnumerable<ObdCommand> GetDefaults()
         {
             return GetFromResourceFile("sharpberry.obd.Pids.standard.csv");
         }
 
-        public static IEnumerable<StandardCommand> GetFromResourceFile(string filename)
+        public static IEnumerable<ObdCommand> GetFromResourceFile(string filename)
         {
-            using (var stream = typeof (StandardCommand).Assembly.GetManifestResourceStream(filename))
+            using (var stream = typeof (ObdCommand).Assembly.GetManifestResourceStream(filename))
             {
                 if (stream == null)
                     throw new ObdException("The specified resource file could not be found");
@@ -56,14 +65,14 @@ namespace sharpberry.obd.Commands
             }
         }
 
-        public static IEnumerable<StandardCommand> GetFromFile(string filename)
+        public static IEnumerable<ObdCommand> GetFromFile(string filename)
         {
             if (filename.All(c => c != Path.DirectorySeparatorChar))
-                filename = Path.Combine(typeof(StandardCommand).Assembly.Location, "Pids", filename);
+                filename = Path.Combine(typeof(ObdCommand).Assembly.Location, "Pids", filename);
             return GetFromString(File.ReadAllText(filename));
         }
 
-        public static IEnumerable<StandardCommand> GetFromString(string content)
+        public static IEnumerable<ObdCommand> GetFromString(string content)
         {
             var reader = new StringReader(content);
             var csv = new CsvReader(reader);
@@ -71,7 +80,7 @@ namespace sharpberry.obd.Commands
             while (csv.Read())
             {
                 //"Mode","Pid","ExpectedBytes",Description,"MinValue","MaxValue",Units,Formula
-                yield return new StandardCommand(
+                yield return new ObdCommand(
                     csv.GetField<string>("Description"),
                     csv.GetField<int>("Mode", HexStringToIntConverter.Instance),
                     csv.GetField<int>("Pid", HexStringToIntConverter.Instance),

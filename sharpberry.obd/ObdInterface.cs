@@ -25,7 +25,7 @@ namespace sharpberry.obd
                 ElmCommands.Reset,
                 ElmCommands.DisableEcho,
                 ElmCommands.DisableExtraCrLf,
-                ElmCommands.EnableHeaders,
+                ElmCommands.DisableHeaders,
                 ElmCommands.SetAdaptiveTiming2,
                 ElmCommands.DisableSpaces
             };
@@ -89,15 +89,18 @@ namespace sharpberry.obd
                 .ToArray();
             await Task.WhenAll(initTasks);
 
-            if (initTasks.All(t => t.IsCompleted && !t.IsFaulted))
+            var failed = initTasks.Where(t => !t.IsCompleted || t.IsFaulted).ToArray();
+            if (failed.Length > 0)
             {
-                if (initTasks.Any(t => t.Result.Status == ResponseStatus.Indeterminate))
-                    Logger.Info("OBD connection aborted prior to completion of initialization commands");
-                else if (initTasks.All(t => t.Result.Status == ResponseStatus.Valid))
-                {
-                    Logger.Info("OBD connection established");
-                    this.State = ObdInterfaceState.Connected;
-                }
+                throw new ObdException("Initialization did not complete as expected");
+            }
+            
+            if (initTasks.Any(t => t.Result.Status == ResponseStatus.Indeterminate))
+                Logger.Info("OBD connection aborted prior to completion of initialization commands");
+            else if (initTasks.All(t => t.Result.Status == ResponseStatus.Valid))
+            {
+                Logger.Info("OBD connection established");
+                this.State = ObdInterfaceState.Connected;
             }
         }
 
@@ -175,7 +178,7 @@ namespace sharpberry.obd
             await task;
             Logger.DebugFormat("Queue item '{0}' finished with status '{1}'", item.Command, item.ResponseValidity);
             if (item.Type == QueueItemType.Initialization && item.ResponseValidity == ResponseStatus.Invalid)
-                this.SetErrorState(item.Command, item.Response);
+                this.SetErrorState(item.Command, item.RawResponse);
             return new CommandCompletedEventArgs(item.Command, item.Response, item.ResponseValidity);
         }
 
@@ -253,7 +256,7 @@ namespace sharpberry.obd
                     return;
                 }
 
-                var data = currentCommand.Response + newlyReceivedData;
+                var data = currentCommand.RawResponse + newlyReceivedData;
                 var lines = data.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                 
                 // discard unwanted response data
@@ -281,7 +284,7 @@ namespace sharpberry.obd
                 }
 
                 // reassemble data
-                currentCommand.SetIntermediateResponse(string.Join("\n", lines.Where(l => l != null)));
+                currentCommand.SetIntermediateResponse(string.Join("\n", lines.Where(l => l != null)), this.Features);
             }
 
             if (fromTimer)
@@ -296,17 +299,15 @@ namespace sharpberry.obd
                 if (this.writeQueue.Count == 0)
                     return;
                 var queueItem = this.writeQueue.Peek();
-
                 Logger.Debug("<-- " + queueItem.Response);
 
-                queueItem.CheckResponseValidity();
                 if (queueItem.ResponseValidity == ResponseStatus.Incomplete && !fromTimer)
                     // keep waiting
                     RestartReadTimer();
                 else
                 {
                     if (queueItem.ResponseValidity == ResponseStatus.Incomplete)
-                        Logger.WarnFormat("Received incomplete response to command '{0}': {1}", queueItem.Command, queueItem.Response);
+                        Logger.WarnFormat("Received incomplete response to command '{0}': {1}", queueItem.Command, queueItem.RawResponse);
                     
                     this.writeQueue.Dequeue();
                     queueItem.SetFinalResponse();
@@ -322,7 +323,7 @@ namespace sharpberry.obd
                                 break;
 
                             case QueueItemType.Initialization:
-                                this.SetFeature(queueItem.Command, queueItem.ResponseValidity, queueItem.Response);
+                                this.SetFeature(queueItem.Command, queueItem.ResponseValidity, queueItem.RawResponse);
                                 break;
                         }
                     }
@@ -354,7 +355,6 @@ namespace sharpberry.obd
 
         public async Task QuerySupportedCommands()
         {
-            // mode 1 pids
             var todo = new[]
                 {
                     // mode, pid, number of commands described
@@ -376,16 +376,16 @@ namespace sharpberry.obd
                 var command = ObdCommands.GetCommand(mode, pid);
                 if (command == null)
                 {
-                    Logger.WarnFormat("Missing feature detection command for mode {0:X}, pid {1:X}", mode, pid);
+                    Logger.WarnFormat("Missing feature detection command for mode 0x{0:X}, pid 0x{1:X}", mode, pid);
                     continue;
                 }
                 var result = await this.ExecuteCommandInternal(command, QueueItemType.FeatureDetection);
                 if (result.Status != ResponseStatus.Valid)
                 {
-                    Logger.WarnFormat("Feature detection failed while identifying supported commands in mode {0}, range {1}-{2}", mode, pid + 1, pid + 20);
+                    Logger.WarnFormat("Feature detection failed while identifying supported commands in mode {0}, range 0x{1:X}-0x{2:X}", mode, pid + 1, pid + 20);
                     continue;
                 }
-                var intValue = Convert.ToInt32(result.Response, 16);
+                var intValue = Convert.ToInt32(result.Response.Data, 16);
                 var bitVector = new BitVector32(intValue);
 
                 for (var i = 1; i <= numberOfCommands; i++)
@@ -397,12 +397,6 @@ namespace sharpberry.obd
                         this.Features.SupportedCommands.Add(cmd);
                 }
             }
-        }
-
-        void PopulaSupportedCommands(Command[] commandRange, BitVector32 bitVector)
-        {
-            for (var i = 0; i < commandRange.Length; i++)
-                this.Features.SupportedCommands.Add(commandRange[i]);
         }
         #endregion
     }
