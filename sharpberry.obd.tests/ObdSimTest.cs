@@ -10,7 +10,7 @@ using sharpberry.obd.Responses;
 
 namespace sharpberry.obd.tests
 {
-    [TestFixture]
+    [TestFixture(Category="Integration")]
     public class ObdSimTest
     {
         /// <summary>
