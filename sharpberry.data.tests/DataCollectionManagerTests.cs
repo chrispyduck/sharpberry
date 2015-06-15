@@ -73,7 +73,7 @@ namespace sharpberry.data.tests
         public void ManualCollect()
         {
             var config = new Config();
-            config.DataCollection.CollectionInterval = TimeSpan.MaxValue;
+            config.DataCollection.CollectionInterval = TimeSpan.FromMilliseconds(int.MaxValue - 1);
             var testTrip = new Trip();
             var providerMock = new Mock<IDataProvider>();
             providerMock.Setup(x => x.StartTrip()).Returns(testTrip);
