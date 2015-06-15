@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
+using sharpberry.obd.Responses;
 
 namespace sharpberry.obd.Commands
 {
@@ -38,7 +39,15 @@ namespace sharpberry.obd.Commands
         public static ObdCommand RelativeAcceleratorPedalPosition { get { return GetCommand(0x01, 0x5A); } }
         public static ObdCommand EngineOilTemp { get { return GetCommand(0x01, 0x5C); } }
         public static ObdCommand EngineFuelRate { get { return GetCommand(0x01, 0x5E); } }
-        
+        public static ObdCommand DtcCount { get { return GetCommand(0x01, 0x01); } }
+        public static CustomCommand GetDtcs { get { return new CustomCommand("03", ExpectedResponse.Any); } }
+
+        public static async Task<DtcStatus[]> GetDtcCount(this ObdInterface obd)
+        {
+            var result = await obd.ExecuteCommand(DtcCount);
+            return result.Responses.Select(r => new DtcStatus(r)).ToArray();
+        }
+
         public static ObdCommand GetCommand(int mode, int pid)
         {
             lock (typeof (ObdCommands))
@@ -82,8 +91,8 @@ namespace sharpberry.obd.Commands
                 //"Mode","Pid","ExpectedBytes",Description,"MinValue","MaxValue",Units,Formula
                 yield return new ObdCommand(
                     csv.GetField<string>("Description"),
-                    csv.GetField<int>("Mode", HexStringToIntConverter.Instance),
-                    csv.GetField<int>("Pid", HexStringToIntConverter.Instance),
+                    csv.GetField<ushort>("Mode", HexStringToUShortConverter.Instance),
+                    csv.GetField<ushort>("Pid", HexStringToUShortConverter.Instance),
                     csv.GetField<int?>("ExpectedBytes", NullableIntConverter.Instance) ?? 0,
                     csv.GetField<int?>("MinValue", NullableIntConverter.Instance),
                     csv.GetField<int?>("MaxValue", NullableIntConverter.Instance),
@@ -115,6 +124,31 @@ namespace sharpberry.obd.Commands
             public bool CanConvertTo(Type type)
             {
                 return type == typeof (int);
+            }
+        }
+
+        private class HexStringToUShortConverter : ITypeConverter
+        {
+            internal static readonly ITypeConverter Instance = new HexStringToUShortConverter();
+
+            public string ConvertToString(TypeConverterOptions options, object value)
+            {
+                throw new NotImplementedException();
+            }
+
+            public object ConvertFromString(TypeConverterOptions options, string text)
+            {
+                return Convert.ToUInt16(text, 16);
+            }
+
+            public bool CanConvertFrom(Type type)
+            {
+                return type == typeof(string);
+            }
+
+            public bool CanConvertTo(Type type)
+            {
+                return type == typeof(uint);
             }
         }
 

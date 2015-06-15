@@ -25,11 +25,15 @@ namespace sharpberry.obd
                 ElmCommands.Reset,
                 ElmCommands.DisableEcho,
                 ElmCommands.DisableExtraCrLf,
-                ElmCommands.DisableHeaders,
+                ElmCommands.EnableHeaders,
                 ElmCommands.SetAdaptiveTiming2,
                 ElmCommands.DisableSpaces
             };
-        internal const int GlobalReadHoldTime = 250;
+
+        /// <summary>
+        /// the maximum amount of time to wait for a command to be completed before giving up
+        /// </summary>
+        internal const int GlobalReadHoldTime = 1250;
 
         public ObdInterface(string portName, int baudRate)
             : this(new SerialPort
@@ -94,10 +98,10 @@ namespace sharpberry.obd
             {
                 throw new ObdException("Initialization did not complete as expected");
             }
-            
-            if (initTasks.Any(t => t.Result.Status == ResponseStatus.Indeterminate))
+
+            if (initTasks.Any(t => t.Result.Responses.Any(r => r.Status == ResponseStatus.Indeterminate)))
                 Logger.Info("OBD connection aborted prior to completion of initialization commands");
-            else if (initTasks.All(t => t.Result.Status == ResponseStatus.Valid))
+            else if (initTasks.All(t => t.Result.Responses.All(r => r.Status == ResponseStatus.Valid)))
             {
                 Logger.Info("OBD connection established");
                 this.State = ObdInterfaceState.Connected;
@@ -134,6 +138,11 @@ namespace sharpberry.obd
         protected void SetErrorState(Command command, string response)
         {
             this.State = ObdInterfaceState.Error;
+            while (this.writeQueue.Count > 0)
+            {
+                var item = this.writeQueue.Dequeue();
+                item.Abort();
+            }
             throw new ObdException(
                 string.Format(
                     "Connection faulted due to unexpected response, '{0}'. Expecting {{{1}}}.",
@@ -176,10 +185,13 @@ namespace sharpberry.obd
             var task = item.WaitHandle.AsTask();
             ProcessWriteQueue();
             await task;
-            Logger.DebugFormat("Queue item '{0}' finished with status '{1}'", item.Command, item.ResponseValidity);
-            if (item.Type == QueueItemType.Initialization && item.ResponseValidity == ResponseStatus.Invalid)
+            for (var i = 0; i < item.Responses.Count; i++)
+            {
+                Logger.DebugFormat("Queue item '{0}' received response[{1}] with status '{2}' in {3}ms", item.Command, i, item.Responses[i].Status, item.Time);
+            }
+            if (item.Type == QueueItemType.Initialization && item.Responses.Any(r => r.Status == ResponseStatus.Invalid))
                 this.SetErrorState(item.Command, item.RawResponse);
-            return new CommandCompletedEventArgs(item.Command, item.Response, item.ResponseValidity);
+            return new CommandCompletedEventArgs(item.Command, item.Responses);
         }
 
         [Writer]
@@ -252,39 +264,43 @@ namespace sharpberry.obd
                 var currentCommand = this.writeQueue.Count > 0 ? this.writeQueue.Peek() : null;
                 if (currentCommand == null)
                 {
-                    Logger.WarnFormat("Received data from OBD, but no data was expected. Data received: {0}", newlyReceivedData);
+                    //Logger.WarnFormat("Received data from OBD, but no data was expected. Data received: {0}", newlyReceivedData);
                     return;
                 }
 
-                var data = currentCommand.RawResponse + newlyReceivedData;
-                var lines = data.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                
-                // discard unwanted response data
-                for (var i = 0; i < lines.Length; i++)
-                {
-                    lines[i] = lines[i].Trim();
+                currentCommand.RawResponse += newlyReceivedData;
 
-                    if (string.IsNullOrWhiteSpace(lines[i])
-                        || lines[i] == ">"
-                        || (currentCommand.Type == QueueItemType.Initialization
-                            && this.Features.EchoEnabled
-                            && lines[i].Equals(currentCommand.Command.GetCommandString()))
-                        )
+                // 
+                var data = currentCommand.UnmatchedResponse + newlyReceivedData;
+                currentCommand.UnmatchedResponse = string.Empty;
+                foreach (var part in ResponseParser.GetParts(data))
+                {
+                    if (string.IsNullOrWhiteSpace(part.Text))
+                        continue;
+                    if (part.Text == ">")
                     {
-                        lines[i] = null;
+                        // received prompt; ELM is done returning data
+                        if (this.readTimer != null)
+                            this.readTimer.Stop();
+                        this.TryFinishRead(true);
+                        return;
+                    }
+                    if (!part.IsComplete)
+                    {
+                        currentCommand.UnmatchedResponse = part.Text;
                         continue;
                     }
+                    if (this.Features.EchoEnabled && part.Text == currentCommand.Command.GetCommandString())
+                        continue;
 
-                    if (!fromTimer && lines[i].Equals("SEARCHING...", StringComparison.InvariantCultureIgnoreCase))
+                    if (!fromTimer && part.Text.Equals("SEARCHING...", StringComparison.InvariantCultureIgnoreCase))
                     {
                         RestartReadTimer(5000);
-                        lines[i] = null;
                         continue;
                     }
-                }
 
-                // reassemble data
-                currentCommand.SetIntermediateResponse(string.Join("\n", lines.Where(l => l != null)), this.Features);
+                    currentCommand.TryAddResponse(part.Text, this.Features);
+                }
             }
 
             if (fromTimer)
@@ -299,48 +315,50 @@ namespace sharpberry.obd
                 if (this.writeQueue.Count == 0)
                     return;
                 var queueItem = this.writeQueue.Peek();
-                Logger.Debug("<-- " + queueItem.Response);
 
-                if (queueItem.ResponseValidity == ResponseStatus.Incomplete && !fromTimer)
+                if (queueItem.UnmatchedResponse != string.Empty && !fromTimer)
+                {
                     // keep waiting
                     RestartReadTimer();
-                else
-                {
-                    if (queueItem.ResponseValidity == ResponseStatus.Incomplete)
-                        Logger.WarnFormat("Received incomplete response to command '{0}': {1}", queueItem.Command, queueItem.RawResponse);
-                    
-                    this.writeQueue.Dequeue();
-                    queueItem.SetFinalResponse();
-
-                    try
-                    {
-                        switch (queueItem.Type)
-                        {
-                            case QueueItemType.User:
-                                var x = this.CommandCompleted;
-                                if (x != null)
-                                    x.Invoke(this, new CommandCompletedEventArgs(queueItem.Command, queueItem.Response, queueItem.ResponseValidity));
-                                break;
-
-                            case QueueItemType.Initialization:
-                                this.SetFeature(queueItem.Command, queueItem.ResponseValidity, queueItem.RawResponse);
-                                break;
-                        }
-                    }
-                    finally
-                    {
-                        this.ProcessWriteQueue();
-                    }
+                    return;
                 }
+
+                foreach (var response in queueItem.Responses)
+                {
+                    Logger.Debug("<-- " + response);
+                    if (response.Status == ResponseStatus.Incomplete)
+                        Logger.WarnFormat("Received incomplete response to command '{0}': {1}", queueItem.Command, response);
+                }
+
+                this.writeQueue.Dequeue();
+                queueItem.MarkComplete();
+                this.ProcessWriteQueue();
+
+                switch (queueItem.Type)
+                {
+                    case QueueItemType.User:
+                        var x = this.CommandCompleted;
+                        if (x != null)
+                            x.Invoke(this, new CommandCompletedEventArgs(queueItem.Command, queueItem.Responses));
+                        break;
+
+                    case QueueItemType.Initialization:
+                        if (queueItem.Responses.Count == 0)
+                            this.SetErrorState(queueItem.Command, string.Empty);
+                        else
+                            this.SetFeature(queueItem.Command, queueItem.Responses[0]);
+                        break;
+                }
+
             }
         }
         #endregion
 
         #region Interface Features
         [Writer]
-        void SetFeature(Command command, ResponseStatus status, string response)
+        void SetFeature(Command command, ParsedResponse response)
         {
-            if (status != ResponseStatus.Valid) 
+            if (response.Status != ResponseStatus.Valid)
                 return;
 
             if (command == ElmCommands.DisableEcho)
@@ -380,21 +398,25 @@ namespace sharpberry.obd
                     continue;
                 }
                 var result = await this.ExecuteCommandInternal(command, QueueItemType.FeatureDetection);
-                if (result.Status != ResponseStatus.Valid)
+                foreach (var response in result.Responses)
                 {
-                    Logger.WarnFormat("Feature detection failed while identifying supported commands in mode {0}, range 0x{1:X}-0x{2:X}", mode, pid + 1, pid + 20);
-                    continue;
-                }
-                var intValue = Convert.ToInt32(result.Response.Data, 16);
-                var bitVector = new BitVector32(intValue);
+                    if (response.Status != ResponseStatus.Valid)
+                    {
+                        Logger.WarnFormat("Feature detection failed while identifying supported commands in mode {0}, range 0x{1:X}-0x{2:X}", mode,
+                                          pid + 1, pid + 20);
+                        continue;
+                    }
+                    var intValue = Convert.ToInt32(response.Data, 16);
+                    var bitVector = new BitVector32(intValue);
 
-                for (var i = 1; i <= numberOfCommands; i++)
-                {
-                    var cmd = ObdCommands.GetCommand(mode, pid + i);
-                    if (this.Features.SupportedCommands.Contains(cmd) && !bitVector[i - 1])
-                        this.Features.SupportedCommands.Remove(cmd);
-                    else if (!this.Features.SupportedCommands.Contains(cmd) && bitVector[i - 1])
-                        this.Features.SupportedCommands.Add(cmd);
+                    for (var i = 1; i <= numberOfCommands; i++)
+                    {
+                        var cmd = ObdCommands.GetCommand(mode, pid + i);
+                        if (this.Features.SupportedCommands.Contains(cmd) && !bitVector[i - 1])
+                            this.Features.SupportedCommands.Remove(cmd);
+                        else if (!this.Features.SupportedCommands.Contains(cmd) && bitVector[i - 1])
+                            this.Features.SupportedCommands.Add(cmd);
+                    }
                 }
             }
         }

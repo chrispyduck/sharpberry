@@ -62,14 +62,14 @@ namespace sharpberry.obd
 
         public void Send(string input)
         {
-            //Logger.Debug("--> " + input.Replace("\r", "\\r").Replace("\n", "\\n"));
+            Logger.Debug("--> " + input.Replace("\r", "\\r").Replace("\n", "\\n"));
             this.serialPort.Write(input);
         }
 
         public string Receive()
         {
             var str = this.serialPort.ReadExisting();
-            //Logger.Debug("<-- " + str.Replace("\r", "\\r").Replace("\n", "\\n"));
+            Logger.Debug("<-- " + str.Replace("\r", "\\r").Replace("\n", "\\n"));
             return str;
         }
 

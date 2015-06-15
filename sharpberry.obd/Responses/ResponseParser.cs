@@ -54,7 +54,8 @@ namespace sharpberry.obd.Responses
                         var offset = 0;
                         if (currentFeatures.HeadersEnabled)
                             response.Header = rawResponse.Substring(0, (offset += 5)).GetBytesFromHexString();
-                        response.Command = rawResponse.Substring(offset, (offset += 4)).GetBytesFromHexString();
+                        response.Command = rawResponse.Substring(offset, 4).GetBytesFromHexString();
+                        offset += 4;
                         response.Data = rawResponse.Substring(offset, expectedResponse.NumberOfBytes*2);
                         response.DataBytes = response.Data.GetBytesFromHexString();
                         if (currentFeatures.HeadersEnabled)
@@ -78,6 +79,23 @@ namespace sharpberry.obd.Responses
             }
 
             return response;
+        }
+
+        public static IEnumerable<ResponsePart> GetParts(string rawResponse)
+        {
+            var lastBreak = -1;
+            for (var i = 0; i < rawResponse.Length; i++)
+            {
+                if (rawResponse[i] != '\r' && rawResponse[i] != '\n')
+                    continue;
+
+                var start = lastBreak + 1;
+                var end = i - start;
+                yield return new ResponsePart(rawResponse.Substring(start, end), true);
+                lastBreak = i;
+            }
+            if (lastBreak < rawResponse.Length - 1)
+                yield return new ResponsePart(rawResponse.Substring(lastBreak + 1), false);
         }
     }
 }

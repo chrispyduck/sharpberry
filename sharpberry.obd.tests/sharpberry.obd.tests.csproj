@@ -65,6 +65,8 @@
   <ItemGroup>
     <Compile Include="ExpectedResponseTests.cs" />
     <Compile Include="ObdCommandTests.cs" />
+    <Compile Include="ObdInterfaceInitializationTests.cs" />
+    <Compile Include="ObdInterfaceTestFixture.cs" />
     <Compile Include="ObdInterfaceTests.cs" />
     <Compile Include="ObdSimTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

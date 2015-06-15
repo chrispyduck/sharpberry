@@ -1,19 +1,18 @@
 using System;
+using System.Collections.Generic;
 using sharpberry.obd.Responses;
 
 namespace sharpberry.obd.Commands
 {
     public class CommandCompletedEventArgs : EventArgs
     {
-        public CommandCompletedEventArgs(Command command, ParsedResponse response, ResponseStatus status)
+        public CommandCompletedEventArgs(Command command, List<ParsedResponse> responses)
         {
             this.Command = command;
-            this.Response = response;
-            this.Status = status;
+            this.Responses = responses;
         }
 
         public Command Command { get; private set; }
-        public ParsedResponse Response { get; private set; }
-        public ResponseStatus Status { get; private set; }
+        public List<ParsedResponse> Responses { get; private set; }
     }
 }

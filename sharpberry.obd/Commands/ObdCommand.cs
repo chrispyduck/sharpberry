@@ -13,7 +13,7 @@ namespace sharpberry.obd.Commands
     {
         private static readonly SimpleExpressionEvaluator.ExpressionEvaluator Evaluator = new ExpressionEvaluator();
 
-        public ObdCommand(string name, int mode, int pid, int expectedBytes, int? minValue, int? maxValue, string units, string formula)
+        public ObdCommand(string name, ushort mode, ushort pid, int expectedBytes, int? minValue, int? maxValue, string units, string formula)
             : this(name, mode, pid, expectedBytes)
         {
             this.MinValue = minValue;
@@ -22,15 +22,15 @@ namespace sharpberry.obd.Commands
             this.Formula = formula;
         }
 
-        public ObdCommand(string name, int mode, int pid, int expectedBytes)
+        public ObdCommand(string name, ushort mode, ushort pid, int expectedBytes)
             : base(name, ExpectedResponse.ByteCount(expectedBytes))
         {
             this.Mode = mode;
             this.Pid = pid;
         }
 
-        public int Mode { get; private set; }
-        public int Pid { get; private set; }
+        public ushort Mode { get; private set; }
+        public ushort Pid { get; private set; }
         public int? MinValue { get; private set; }
         public int? MaxValue { get; private set; }
         public string Units { get; private set; }

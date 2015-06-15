@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{56BD0B15-F23B-42AB-996D-4D5A46AB31A9}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>sharpberry</RootNamespace>
+    <AssemblyName>sharpberry</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <DontImportPostSharp>True</DontImportPostSharp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="dbus-sharp">
+      <HintPath>..\packages\dbus-sharp.0.7.0\lib\net35\dbus-sharp.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\sharpberry.obd\bin\Debug\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Unity, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Unity.3.5.1404.0\lib\net45\Microsoft.Practices.Unity.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Unity.Configuration">
+      <HintPath>..\packages\Unity.3.5.1404.0\lib\net45\Microsoft.Practices.Unity.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.Unity.RegistrationByConvention">
+      <HintPath>..\packages\Unity.3.5.1404.0\lib\net45\Microsoft.Practices.Unity.RegistrationByConvention.dll</HintPath>
+    </Reference>
+    <Reference Include="PostSharp, Version=4.1.13.0, Culture=neutral, PublicKeyToken=b13fd38b8f9c99d7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\PostSharp.4.1.13\lib\net35-client\PostSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PostSharp.Patterns.Common">
+      <HintPath>..\packages\PostSharp.Patterns.Common.4.1.13\lib\net40\PostSharp.Patterns.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="PostSharp.Patterns.Threading">
+      <HintPath>..\packages\PostSharp.Patterns.Threading.4.1.13\lib\net45\PostSharp.Patterns.Threading.dll</HintPath>
+    </Reference>
+    <Reference Include="Raspberry.IO">
+      <HintPath>..\packages\Raspberry.IO.GeneralPurpose.2.3.0\lib\net40\Raspberry.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="Raspberry.IO.GeneralPurpose">
+      <HintPath>..\packages\Raspberry.IO.GeneralPurpose.2.3.0\lib\net40\Raspberry.IO.GeneralPurpose.dll</HintPath>
+    </Reference>
+    <Reference Include="Raspberry.IO.Interop">
+      <HintPath>..\packages\Raspberry.IO.GeneralPurpose.2.3.0\lib\net40\Raspberry.IO.Interop.dll</HintPath>
+    </Reference>
+    <Reference Include="Raspberry.System">
+      <HintPath>..\packages\Raspberry.System.2.0.0\lib\net40\Raspberry.System.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="controllers\BluetoothController.cs" />
+    <Compile Include="controllers\Controller.cs" />
+    <Compile Include="controllers\ControllerEventArgs.cs" />
+    <Compile Include="controllers\ControllerEventType.cs" />
+    <Compile Include="controllers\DataController.cs" />
+    <Compile Include="controllers\IController.cs" />
+    <Compile Include="controllers\LedBehavior.cs" />
+    <Compile Include="controllers\LedController.cs" />
+    <Compile Include="controllers\StartupPriority.cs" />
+    <Compile Include="dbus\IBluezAdapter1.cs" />
+    <Compile Include="dbus\IBluezDevice1.cs" />
+    <Compile Include="dbus\IObjectManager.cs" />
+    <Compile Include="dbus\IProperties.cs" />
+    <Compile Include="gpio\IGpioProxy.cs" />
+    <Compile Include="gpio\PinChangeEventArgs.cs" />
+    <Compile Include="gpio\RPiGpio.cs" />
+    <Compile Include="MasterController.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="controllers\PowerController.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="App.config" />
+    <None Include="packages.config" />
+    <None Include="sharpberry.psproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\sharpberry.configuration\sharpberry.configuration.csproj">
+      <Project>{d71b766c-db5f-476c-9a72-109e255bf00c}</Project>
+      <Name>sharpberry.configuration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sharpberry.data\sharpberry.data.csproj">
+      <Project>{EF9DDC9C-D980-4847-85B0-F8124331979E}</Project>
+      <Name>sharpberry.data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\sharpberry.obd\sharpberry.obd.csproj">
+      <Project>{062e3cb0-d22e-4462-a5a0-fe3ba53dbee1}</Project>
+      <Name>sharpberry.obd</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+  <Import Project="..\packages\PostSharp.4.1.13\tools\PostSharp.targets" Condition="Exists('..\packages\PostSharp.4.1.13\tools\PostSharp.targets')" />
+  <Target Name="EnsurePostSharpImported" BeforeTargets="BeforeBuild" Condition="'$(PostSharp30Imported)' == ''">
+    <Error Condition="!Exists('..\packages\PostSharp.4.1.13\tools\PostSharp.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://www.postsharp.net/links/nuget-restore." />
+    <Error Condition="Exists('..\packages\PostSharp.4.1.13\tools\PostSharp.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://www.postsharp.net/links/nuget-restore." />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

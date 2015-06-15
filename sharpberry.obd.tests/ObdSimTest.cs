@@ -20,11 +20,21 @@ namespace sharpberry.obd.tests
         {
             ObdCommands.LoadDefaults();
 
-            obd = new ObdInterface("COM5", 115200);
+            obd = new ObdInterface("COM5", 38400);
             obd.Connect().Wait();
         }
 
         private ObdInterface obd;
+
+        [Test]
+        public void QueryDtcs()
+        {
+            var task = obd.GetDtcCount();
+            task.Wait();
+            var results = task.Result;
+            Assert.AreEqual(1, results.Length);
+            Assert.IsTrue(results[0].IsCheckEngineLightOn);
+        }
 
         [Test]
         public void QuerySupportedCommands()
@@ -38,9 +48,12 @@ namespace sharpberry.obd.tests
             var cmd = ObdCommands.GetCommand(0x01, 0x0C);
             var task = obd.ExecuteCommand(cmd);
             task.Wait();
-            Assert.AreEqual(ResponseStatus.Valid, task.Result.Status);
 
-            var rpm = cmd.Evaluate(task.Result.Response.DataBytes);
+            var response = task.Result.Responses.FirstOrDefault();
+            Assert.NotNull(response);
+            Assert.AreEqual(ResponseStatus.Valid, response.Status);
+
+            var rpm = cmd.Evaluate(response.DataBytes);
             Trace.TraceInformation("RPM: {0}", rpm);
             Assert.Greater(rpm, 0);
         }

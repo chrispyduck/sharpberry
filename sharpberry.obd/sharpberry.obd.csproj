@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\CustomCommand.cs" />
+    <Compile Include="Commands\DtcStatus.cs" />
     <Compile Include="Commands\ElmCommands.cs" />
     <Compile Include="Commands\Command.cs" />
     <Compile Include="Commands\CommandCompletedEventArgs.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="Responses\ExpectedResponse.cs" />
     <Compile Include="Responses\ParsedResponse.cs" />
     <Compile Include="Responses\ResponseParser.cs" />
+    <Compile Include="Responses\ResponsePart.cs" />
     <Compile Include="Responses\ResponseStatus.cs" />
     <Compile Include="Responses\StringExpectedResponse.cs" />
     <Compile Include="SerialPort.cs" />
