@@ -1,0 +1,8 @@
+language: csharp
+solution: sharpberry.sln
+install:
+  - nuget restore sharpberry.sln
+  - nuget install NUnit.Runners -OutputDirectory testrunner
+script:
+  - xbuild /p:Configuration=Release sharpberry.sln
+  - find . -name '*.tests' | grep bin | xargs mono ./testrunner/NUnit.Runners.*/tools/nunit-console.exe 
