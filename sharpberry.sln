@@ -24,6 +24,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sharpberry.tests", "sharpbe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sharpberry.configuration.tests", "sharpberry.configuration.tests\sharpberry.configuration.tests.csproj", "{C58EA603-6C73-48A8-BCB7-5908511B0EC7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{75DFE6B3-6467-4B64-889C-18379CD7ADA8}"
+	ProjectSection(SolutionItems) = preProject
+		.travis.yml = .travis.yml
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
