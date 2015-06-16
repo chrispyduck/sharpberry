@@ -1,7 +1,5 @@
 #Raspberry Pi-based vehicle black box
 
-![Build Status](https://ci.appveyor.com/api/projects/status/0cmerh78ba1jn18q?svg=true)
-
 ##Immediate goals
 * Monitor vehicle status using OBDII port via ELM327 interface and store data in local MongoDB instance
 * Low-power mode when vehicle is off
@@ -19,3 +17,10 @@
 * Backup solar power and battery for when vehicle is off
 * Visual feedback of vehicle performance
 * Make it a media center, too
+
+#Build Status
+Platform|Status
+---|---
+Windows|[![Build Status](https://ci.appveyor.com/api/projects/status/0cmerh78ba1jn18q?svg=true)](https://ci.appveyor.com/project/chrispyduck/sharpberry)
+Mono|[![Build Status](https://travis-ci.org/chrispyduck/sharpberry.svg)](https://travis-ci.org/chrispyduck/sharpberry)
+
