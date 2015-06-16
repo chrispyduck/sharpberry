@@ -44,14 +44,6 @@
     <Reference Include="Microsoft.Practices.Unity.Configuration">
       <HintPath>..\packages\Unity.3.5.1404.0\lib\net45\Microsoft.Practices.Unity.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="PostSharp, Version=4.1.14.0, Culture=neutral, PublicKeyToken=b13fd38b8f9c99d7, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\PostSharp.4.1.14\lib\net35-client\PostSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PostSharp.Patterns.Common">
-      <HintPath>..\packages\PostSharp.Patterns.Common.4.1.14\lib\net40\PostSharp.Patterns.Common.dll</HintPath>
-    </Reference>
     <Reference Include="Raspberry.IO.GeneralPurpose">
       <HintPath>..\packages\Raspberry.IO.GeneralPurpose.2.3.0\lib\net40\Raspberry.IO.GeneralPurpose.dll</HintPath>
     </Reference>

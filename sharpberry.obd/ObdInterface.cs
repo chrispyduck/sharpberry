@@ -7,8 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using PostSharp.Patterns.Model;
-using PostSharp.Patterns.Threading;
 using log4net;
 using sharpberry.obd.Commands;
 using sharpberry.obd.Responses;
@@ -16,7 +14,6 @@ using Timer = System.Timers.Timer;
 
 namespace sharpberry.obd
 {
-    //[ReaderWriterSynchronized]
     public class ObdInterface : IDisposable
     {
         private static readonly ILog Logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -58,18 +55,15 @@ namespace sharpberry.obd
         internal bool IsReadTimerEnabled { get; set; }
         public string PortName { get { return this.port.PortName; } }
         public int BaudRate { get { return this.port.BaudRate; } }
-        public ObdInterfaceState State { [Reader] get; private set; }
+        public ObdInterfaceState State { get; private set; }
         public ObdFeatures Features { get; private set; }
         public event EventHandler<CommandCompletedEventArgs> CommandCompleted;
 
-        [Child]
         private readonly ISerialPort port;
-        [Child]
         internal readonly CommandQueue writeQueue = new CommandQueue();
         private Timer readTimer = null;
 
         #region Control
-        [Writer]
         public async Task Connect()
         {
             Logger.InfoFormat("Opening serial port {0}@{1}", this.PortName, this.BaudRate);
@@ -151,7 +145,6 @@ namespace sharpberry.obd
                 command: command);
         }
 
-        [Writer]
         public void Dispose()
         {
             this.State = ObdInterfaceState.Disposed;
@@ -194,7 +187,6 @@ namespace sharpberry.obd
             return new CommandCompletedEventArgs(item.Command, item.Responses);
         }
 
-        [Writer]
         public async Task<CommandCompletedEventArgs> ExecuteCommand(Command command)
         {
             if (this.State != ObdInterfaceState.Connected)
@@ -355,7 +347,6 @@ namespace sharpberry.obd
         #endregion
 
         #region Interface Features
-        [Writer]
         void SetFeature(Command command, ParsedResponse response)
         {
             if (response.Status != ResponseStatus.Valid)
