@@ -5,7 +5,7 @@ install:
   - nuget install NUnit.Runners -OutputDirectory testrunner
 script:
   - xbuild /p:Configuration=Release sharpberry.sln
-  - find . -name '*.tests.dll' | grep bin | xargs -i -l20 mono ./testrunner/NUnit.Runners.*/tools/nunit-console.exe '{}' /exclude:Integration
+#  - find . -name '*.tests.dll' | grep bin | xargs -i -l20 mono ./testrunner/NUnit.Runners.*/tools/nunit-console.exe '{}' /exclude:Integration
   
 env:
   global:
