@@ -55,23 +55,62 @@ namespace sharpberry.gpio
             else
                 return;
 
+            // don't immediately set the values; instead, wait a bit and report after the values have settled down
             this.holdTimer.Stop();
             this.holdTimer.Start();
         }
 
         protected void HoldTimerElapsed(object sender, ElapsedEventArgs args)
         {
-            // raise event!
             this.holdTimer.Stop();
 
-            this.lastvAccValue = this.vAccValue;
-            this.lastvBattValue = this.vBattValue;
+            if (this.lastvAccValue != this.vAccValue)
+            {
+                this.PinChanged?.Invoke(this, new PinChangeEventArgs(nameof(vAcc), this.vAccValue));
+                this.lastvAccValue = this.vAccValue;
+            }
+            
+            if (this.lastvBattValue != this.vBattValue)
+            {
+                this.PinChanged?.Invoke(this, new PinChangeEventArgs(nameof(vBatt), this.vAccValue));
+                this.lastvBattValue = this.vBattValue;
+            }            
         }
 
         public event EventHandler<PinChangeEventArgs> PinChanged;
-        public bool PowerLed { get; set; }
-        public bool ActivityLed { get; set; }
-        public bool vAcc { get; set; }
-        public bool vBatt { get; set; }
+
+        public bool PowerLed
+        {
+            get { return this.connection[this.powerLedPin]; }
+            set { this.connection[this.powerLedPin] = value; }
+        }
+
+        public bool ActivityLed
+        {
+            get { return this.connection[this.activityLedPin]; }
+            set { this.connection[this.activityLedPin] = value; }
+        }
+
+        public bool vAcc
+        {
+            get { return this.lastvAccValue; }
+            set
+            {
+                this.lastvAccValue = value;
+                this.connection[this.vAccPin] = value;
+                this.PinChanged?.Invoke(this, new PinChangeEventArgs(nameof(vAcc), value));
+            }
+        }
+
+        public bool vBatt
+        {
+            get { return this.lastvBattValue; }
+            set
+            {
+                this.lastvBattValue = value;
+                this.connection[this.vBattPin] = value;
+                this.PinChanged?.Invoke(this, new PinChangeEventArgs(nameof(vBatt), value));
+            }
+        }
     }
 }

@@ -26,12 +26,12 @@ namespace sharpberry.controllers
 
         protected override void OnEnterPowerSave()
         {
-            
+            // nothing to do; PowerController is only responsible for reporting power status to other controllers
         }
 
         protected override void OnExitPowerSave()
         {
-            
+            // nothing to do; PowerController is only responsible for reporting power status to other controllers
         }
     }
 }

@@ -11,6 +11,9 @@ using Timer = System.Timers.Timer;
 
 namespace sharpberry.controllers
 {
+    /// <summary>
+    /// Manages LED blinking behavior to provide visual feedback for headless operation
+    /// </summary>
     public class LedController : Controller
     {
         public LedController(IGpioProxy gpio, Config config)

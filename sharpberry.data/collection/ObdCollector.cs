@@ -9,11 +9,15 @@ using sharpberry.data.storage;
 using sharpberry.data.types;
 using sharpberry.obd;
 using sharpberry.obd.Commands;
+using System.Diagnostics;
+using log4net;
 
 namespace sharpberry.data.collection
 {
     public class ObdCollector : DataCollector<ObdSample>
     {
+        private static readonly ILog logger = LogManager.GetLogger(typeof(MongoDataProvider));
+
         public ObdCollector(ObdInterface obd)
         {
             this.Obd = obd;
@@ -26,7 +30,8 @@ namespace sharpberry.data.collection
                     ObdCommands.EngineRpm,
                     ObdCommands.RelativeAcceleratorPedalPosition,
                     ObdCommands.ThrottlePosition,
-                    ObdCommands.VehicleSpeed
+                    ObdCommands.VehicleSpeed,
+                    ObdCommands.MassAirFlow
                 };
             diagCommands = new ObdCommand[]
                 {
@@ -53,6 +58,9 @@ namespace sharpberry.data.collection
 
         internal override IEnumerable<ObdSample> GetSamples()
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             var commands = new List<ObdCommand>(blackBoxCommands.Length + diagCommands.Length);
             commands.AddRange(blackBoxCommands);
 
@@ -65,6 +73,10 @@ namespace sharpberry.data.collection
             // enqueue all commands and wait for all results
             var tasks = commands.Select(c => this.Obd.ExecuteCommand(c)).ToArray();
             Task.WaitAll(tasks);
+
+            sw.Stop();
+            logger.Debug($"ObdCollector.GetSamples() took {sw.ElapsedMilliseconds}ms");
+
             return tasks
                 .Where(t => t.Status == TaskStatus.RanToCompletion)
                 .SelectMany(t =>

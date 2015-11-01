@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 using System.Timers;
 using sharpberry.configuration;
 using sharpberry.data.collection;
+using log4net;
 
 namespace sharpberry.controllers
 {
     public class DataController : Controller 
     {
+        private static readonly ILog logger = LogManager.GetLogger(typeof(DataController));
+
         public DataController(DataCollectionManager dataCollectionManager, Config config)
             : base(StartupPriority.DataCollection)
         {
@@ -29,6 +32,7 @@ namespace sharpberry.controllers
 
         protected override void OnEnterPowerSave()
         {
+            logger.Info($"Stopping trip {dataCollectionManager.CurrentTrip.Id}");
             dataCollectionManager.EndTrip();
             this.dataTimer.Stop();
         }
@@ -36,6 +40,7 @@ namespace sharpberry.controllers
         protected override void OnExitPowerSave()
         {
             dataCollectionManager.StartTrip();
+            logger.Info($"Started trip {dataCollectionManager.CurrentTrip.Id}");
             this.dataTimer.Start();
         }
 

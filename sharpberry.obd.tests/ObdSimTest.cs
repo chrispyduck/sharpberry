@@ -20,7 +20,7 @@ namespace sharpberry.obd.tests
         {
             ObdCommands.LoadDefaults();
 
-            obd = new ObdInterface("COM5", 38400);
+            obd = new ObdInterface("COM3", 38400);
             obd.Connect().Wait();
         }
 

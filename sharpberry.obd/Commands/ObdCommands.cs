@@ -40,6 +40,7 @@ namespace sharpberry.obd.Commands
         public static ObdCommand EngineOilTemp { get { return GetCommand(0x01, 0x5C); } }
         public static ObdCommand EngineFuelRate { get { return GetCommand(0x01, 0x5E); } }
         public static ObdCommand DtcCount { get { return GetCommand(0x01, 0x01); } }
+        public static ObdCommand MassAirFlow {  get { return GetCommand(0x01, 0x66); } }
         public static CustomCommand GetDtcs { get { return new CustomCommand("03", ExpectedResponse.Any); } }
 
         public static async Task<DtcStatus[]> GetDtcCount(this ObdInterface obd)
